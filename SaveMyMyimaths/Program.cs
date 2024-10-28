@@ -48,6 +48,7 @@ var cirno = new CanvasImage(Path.Combine("storage", "cirno.png"));
 await LoginHandler.Login(acc);
 await LoginHandler.FindAllTaskAsync();
 
+
 if (Registry.TaskInfoRecordsList.Count == 0)
 {
     AnsiConsole.Write(cirno);

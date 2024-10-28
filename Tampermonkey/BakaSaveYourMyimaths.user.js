@@ -56,21 +56,22 @@
                 console.log(`embed player src: ${embedSrc}`);
                 let params = new URLSearchParams(eurl.search);
                 let contentUrl = decodeURIComponent(params.get('assetHost') + params.get('contentPath') + 'content.xml');       // 重建content.xml url
-                Toastify({text: `fetching content.xml: ${contentUrl}`,close: true}).showToast();
+                Toastify({text: `fetching content.xml...`,close: true}).showToast();
+                console.log(contentUrl)
                 GM__xmlHttpRequest({        // 获取content.xml
                     method: 'GET', url: contentUrl, anonymous: false, headers: {'Referrer': embedSrc},
                     onabort: console.error, onerror: console.error, ontimeout: console.error,
                     onload: (e) => {
                         const parser = new DOMParser();       // 解析xml
-                        const xmlDoc = parser.parseFromString(e.responseText.replace(/&int;/g, ""), "application/xml");
-                        const nsResolver = (prefix) => {return {'ns': 'http://www.mymaths.co.uk/XMLSchema'}[prefix] || null};     // ns解析schema
-                        const questionNodes = xmlDoc.evaluate("//ns:homeworkQuestion", xmlDoc, nsResolver, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                        const xmlDoc = parser.parseFromString(e.responseText.replace(/&[^;]*;/g, ''), "application/xml");
+                        const questionNodes = xmlDoc.getElementsByTagName("homeworkQuestion");
+                        console.log(xmlDoc.getElementsByTagName("worksheet")[0].children)
                         let Q1Score = 0, Q2Score = 0, Q3Score = 0, Q4Score = 0;
                         try {
-                            Q1Score = parseInt(questionNodes.snapshotItem(0).getAttribute('questionmarks'));
-                            Q2Score = parseInt(questionNodes.snapshotItem(1).getAttribute('questionmarks'));
-                            Q3Score = parseInt(questionNodes.snapshotItem(2).getAttribute('questionmarks'));
-                            Q4Score = parseInt(questionNodes.snapshotItem(3).getAttribute('questionmarks'));
+                            Q1Score = parseInt(questionNodes[0].getAttribute('questionmarks'));
+                            Q2Score = parseInt(questionNodes[1].getAttribute('questionmarks'));
+                            Q3Score = parseInt(questionNodes[2].getAttribute('questionmarks'));
+                            Q4Score = parseInt(questionNodes[3].getAttribute('questionmarks'));
                         } catch {}
                         let results = {
                             authCode: parseInt(params.get('authCode')),
@@ -114,7 +115,7 @@
                                     onload: (e) => {
                                         console.log(e.status)
                                         console.log(e.responseText)
-                                        if(e.status === 200) {Toastify({text: "Success!",close: true}).showToast();location.reload();}
+                                        if(e.status === 200) {Toastify({text: "Success!",close: true}).showToast();}
                                         else Toastify({text: `Error ${e.status}!`,close: true}).showToast();
                                     }
                                 })
