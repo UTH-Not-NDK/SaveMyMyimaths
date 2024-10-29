@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Web;
 using HtmlAgilityPack;
 using SaveMyMyimaths.Records;
+using Spectre.Console;
 
 namespace SaveMyMyimaths;
 
@@ -17,23 +19,25 @@ public class CrackHandler
         var request = new HttpRequestMessage(HttpMethod.Post, "https://app.myimaths.com/api/legacy/save/mark");
         Utilities.Utilities.AddHeaders(ref request);
 
-        request.Content = new StringContent(Utilities.Utilities.ToQueryString(new Dictionary<string, string?>
+        var body = Utilities.Utilities.ToQueryString(new Dictionary<string, string?>
         {
             { "taskID", markParameters.TaskId.ToString() },
             { "realID", markParameters.RealId.ToString() },
-            { "q1score", markParameters.Q1Score.ToString() },
-            { "q2score", markParameters.Q2Score.ToString() },
-            { "q3score", null },
-            { "q4score", null },
+            { "q1score", markParameters.Q1Score == 0 ? null : markParameters.Q1Score.ToString() },
+            { "q2score", markParameters.Q2Score == 0 ? null : markParameters.Q2Score.ToString() },
+            { "q3score", markParameters.Q3Score == 0 ? null : markParameters.Q3Score.ToString() },
+            { "q4score", markParameters.Q4Score == 0 ? null : markParameters.Q4Score.ToString() },
             { "sCode", markParameters.GetSCode().ToString() },
             { "studentID", markParameters.StudentId.ToString() },
             { "authToken", markParameters.AuthToken },
             { "time_spent", new Random().Next(600_000, 1_260_000).ToString() }
-        }), Encoding.UTF8, "application/x-www-form-urlencoded");
+        });
+        
+        request.Content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
         Registry.Registry.GetProgress("1").Update("Uploading marks...");
         var response = await client.SendAsync(request);
-
+        
         Registry.Registry.GetProgress("1").Update("Finished.");
     }
 
